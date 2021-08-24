@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, Text, View } from 'react-native';
 
 import { NUMBER_ROWS, MINUS_HEIGHT } from './constants';
@@ -12,15 +12,24 @@ type ListItemProps = {
 const ListItem = ({ item, height, onAction }: ListItemProps): JSX.Element => {
   const [coordinates, setCoordinates] = useState<string>('');
 
-  const handleCoordinates = useCallback(({ nativeEvent }) => {
-    const { layout } = nativeEvent;
-    setCoordinates(`x=${layout.x} y=${layout.y}`)
+  const myRef = useRef<any>();
+
+  useEffect(() => {
+    if (myRef?.current) {
+      handleCoordinates();
+    }
+  }, [myRef.current, height])
+
+  const handleCoordinates = useCallback(async () => {
+    await myRef?.current?.measureInWindow(
+      (x: number, y: number) => setCoordinates(`x=${x.toFixed(2)} y=${y.toFixed(2)}`)
+    );
   }, [])
 
   return (
     <View
+      ref={myRef}
       style={styles(height).item}
-      onLayout={handleCoordinates}
       key={item}
     >
       <TouchableOpacity
@@ -53,6 +62,7 @@ const styles = (height?: any) => StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
+    textAlign: 'center',
   },
 });
 
